@@ -9,20 +9,19 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
+            text-align: center;
         }
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 60px;
+            margin-top: 20px;
         }
         .score-container {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            display: none; /* Score hidden before quiz starts */
+            display: none;
+            margin-bottom: 10px;
         }
         .message {
             font-size: 16px;
@@ -32,9 +31,11 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
             gap: 5px;
             margin-top: 20px;
+            width: 90%;
+            max-width: 800px;
         }
         .problem {
             display: flex;
@@ -57,15 +58,19 @@
         .hidden {
             display: none;
         }
+        .incorrect {
+            border: 1.5px solid red;
+            border-radius: 8px;
+            background-color: #ffe6e6;
+        }
     </style>
 </head>
 <body>
-    <div class="score-container" id="scoreContainer">
-        Score: <span id="score">0</span>
-        <div id="message" class="message"></div>
-    </div>
-    
     <div class="container">
+        <div class="score-container" id="scoreContainer">
+            Score: <span id="score">0</span>
+            <div id="message" class="message"></div>
+        </div>
         <h1>Window Card Quiz</h1>
         <div class="controls">
             <label for="mode">Mode:</label>
@@ -73,17 +78,13 @@
                 <option value="open">Open Time</option>
                 <option value="limited">Limited Time</option>
             </select>
-            
             <label for="time" id="timeLabel" class="hidden">Seconds:</label>
             <input type="number" id="time" min="10" max="300" class="hidden">
-
             <button id="startButton" onclick="startQuiz()">Start</button>
         </div>
-
         <div class="grid" id="quizGrid"></div>
         <button id="submitButton" class="hidden" onclick="calculateScore()">Submit</button>
     </div>
-
     <script>
         const quizGrid = document.getElementById("quizGrid");
         const modeSelect = document.getElementById("mode");
@@ -100,12 +101,12 @@
             if (modeSelect.value === "limited") {
                 timeInput.classList.remove("hidden");
                 timeLabel.classList.remove("hidden");
-                timeInput.disabled = false; // Enable time input
+                timeInput.disabled = false;
                 submitButton.classList.add("hidden");
             } else {
                 timeInput.classList.add("hidden");
                 timeLabel.classList.add("hidden");
-                timeInput.disabled = true; // Disable time input in open mode
+                timeInput.disabled = true;
                 submitButton.classList.remove("hidden");
             }
         });
@@ -128,24 +129,22 @@
 
         function startQuiz() {
             generateProblems();
-            scoreContainer.style.display = "none"; // Hide score on quiz start
-            messageDisplay.innerText = ""; // Reset message
-            startButton.style.display = "none"; // Hide start button
+            scoreContainer.style.display = "none";
+            messageDisplay.innerText = "";
+            startButton.style.display = "none"; 
             submitButton.classList.remove("hidden");
             clearTimeout(timer);
-
-            // Enable inputs after starting
             document.querySelectorAll("input[type='number']").forEach(input => {
                 input.disabled = false;
                 input.style.pointerEvents = "auto";
                 input.style.backgroundColor = "white";
+                input.classList.remove("incorrect"); 
             });
-
             if (modeSelect.value === "limited") {
-                let timeLeft = parseInt(timeInput.value) || 30; // Default to 30 if empty
+                let timeLeft = parseInt(timeInput.value) || 30;
                 timeInput.value = timeLeft;
                 timer = setTimeout(() => {
-                    alert("Time's up!"); // Show message first
+                    alert("Time's up!");
                     calculateScore();
                 }, timeLeft * 1000);
             }
@@ -160,14 +159,13 @@
                 let num2 = parseInt(problem.nextElementSibling.innerText.split('-')[1]);
                 if (input.value == (num1 - num2)) {
                     score++;
+                } else {
+                    input.classList.add("incorrect"); 
                 }
-                input.disabled = true; // Disable inputs after submission
+                input.disabled = true;
             }
-
             scoreDisplay.innerText = score;
-            scoreContainer.style.display = "block"; // Show score container
-
-            // Compliment or encouragement based on score
+            scoreContainer.style.display = "block";
             if (score >= 80) {
                 messageDisplay.innerText = "🎉 Excellent job! You're a math pro!";
             } else if (score >= 50) {
@@ -175,9 +173,8 @@
             } else {
                 messageDisplay.innerText = "💪 Don't give up! Keep trying and you'll get better!";
             }
-
-            startButton.style.display = "block"; // Show start button again
-            submitButton.classList.add("hidden"); // Hide submit button
+            startButton.style.display = "block";
+            submitButton.classList.add("hidden");
         }
     </script>
 </body>
