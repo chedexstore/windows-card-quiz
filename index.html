@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Window Card Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 60px;
+        }
+        .score-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            display: none; /* Score hidden before quiz starts */
+        }
+        .message {
+            font-size: 16px;
+            font-weight: bold;
+            color: green;
+            margin-top: 5px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        .problem {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 18px;
+        }
+        input {
+            width: 50px;
+            text-align: center;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="score-container" id="scoreContainer">
+        Score: <span id="score">0</span>
+        <div id="message" class="message"></div>
+    </div>
+    
+    <div class="container">
+        <h1>Window Card Quiz</h1>
+        <div class="controls">
+            <label for="mode">Mode:</label>
+            <select id="mode">
+                <option value="open">Open Time</option>
+                <option value="limited">Limited Time</option>
+            </select>
+            
+            <label for="time" id="timeLabel" class="hidden">Seconds:</label>
+            <input type="number" id="time" min="10" max="300" class="hidden">
+
+            <button id="startButton" onclick="startQuiz()">Start</button>
+        </div>
+
+        <div class="grid" id="quizGrid"></div>
+        <button id="submitButton" class="hidden" onclick="calculateScore()">Submit</button>
+    </div>
+
+    <script>
+        const quizGrid = document.getElementById("quizGrid");
+        const modeSelect = document.getElementById("mode");
+        const timeInput = document.getElementById("time");
+        const timeLabel = document.getElementById("timeLabel");
+        const submitButton = document.getElementById("submitButton");
+        const startButton = document.getElementById("startButton");
+        const scoreContainer = document.getElementById("scoreContainer");
+        const scoreDisplay = document.getElementById("score");
+        const messageDisplay = document.getElementById("message");
+        let timer;
+
+        modeSelect.addEventListener("change", () => {
+            if (modeSelect.value === "limited") {
+                timeInput.classList.remove("hidden");
+                timeLabel.classList.remove("hidden");
+                timeInput.disabled = false; // Enable time input
+                submitButton.classList.add("hidden");
+            } else {
+                timeInput.classList.add("hidden");
+                timeLabel.classList.add("hidden");
+                timeInput.disabled = true; // Disable time input in open mode
+                submitButton.classList.remove("hidden");
+            }
+        });
+
+        function generateProblems() {
+            quizGrid.innerHTML = "";
+            for (let i = 0; i < 100; i++) {
+                let num1 = Math.floor(Math.random() * 20) + 1;
+                let num2 = Math.floor(Math.random() * num1);
+                let problem = document.createElement("div");
+                problem.classList.add("problem");
+                problem.innerHTML = `
+                    <div>${num1}</div>
+                    <div>-${num2}</div>
+                    <input type="number" id="answer${i}" disabled>
+                `;
+                quizGrid.appendChild(problem);
+            }
+        }
+
+        function startQuiz() {
+            generateProblems();
+            scoreContainer.style.display = "none"; // Hide score on quiz start
+            messageDisplay.innerText = ""; // Reset message
+            startButton.style.display = "none"; // Hide start button
+            submitButton.classList.remove("hidden");
+            clearTimeout(timer);
+
+            // Enable inputs after starting
+            document.querySelectorAll("input[type='number']").forEach(input => {
+                input.disabled = false;
+                input.style.pointerEvents = "auto";
+                input.style.backgroundColor = "white";
+            });
+
+            if (modeSelect.value === "limited") {
+                let timeLeft = parseInt(timeInput.value) || 30; // Default to 30 if empty
+                timeInput.value = timeLeft;
+                timer = setTimeout(() => {
+                    alert("Time's up!"); // Show message first
+                    calculateScore();
+                }, timeLeft * 1000);
+            }
+        }
+
+        function calculateScore() {
+            let score = 0;
+            for (let i = 0; i < 100; i++) {
+                let input = document.getElementById(`answer${i}`);
+                let problem = input.previousElementSibling.previousElementSibling;
+                let num1 = parseInt(problem.innerText);
+                let num2 = parseInt(problem.nextElementSibling.innerText.split('-')[1]);
+                if (input.value == (num1 - num2)) {
+                    score++;
+                }
+                input.disabled = true; // Disable inputs after submission
+            }
+
+            scoreDisplay.innerText = score;
+            scoreContainer.style.display = "block"; // Show score container
+
+            // Compliment or encouragement based on score
+            if (score >= 80) {
+                messageDisplay.innerText = "🎉 Excellent job! You're a math pro!";
+            } else if (score >= 50) {
+                messageDisplay.innerText = "👍 Good effort! Keep practicing!";
+            } else {
+                messageDisplay.innerText = "💪 Don't give up! Keep trying and you'll get better!";
+            }
+
+            startButton.style.display = "block"; // Show start button again
+            submitButton.classList.add("hidden"); // Hide submit button
+        }
+    </script>
+</body>
+</html>
